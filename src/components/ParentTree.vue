@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="container">
         <TreeNode :node="treeData[0]" v-for="node in treeData" :key="node.id" @update="handleUpdateNode" />
     </div>
 </template>
@@ -164,6 +164,7 @@ onEvent('increaseLevel', (id) => {
         console.log("Không tìm thấy node để tăng cấp.");
     }
 });
+
 onEvent('demoteNode', (parentId, targetId) => {
     function demoteNode(node, parentId, targetId) {
         if (!node.children) return false;
@@ -204,3 +205,12 @@ onEvent('demoteNode', (parentId, targetId) => {
 
 
 </script>
+<style scoped>
+.container {
+    border: 1px solid rgba(220, 220, 220, 1);
+    border-radius: 10px;
+    padding: 38px 28px 18px 0;
+    max-width: 500px;
+    margin: auto;
+}
+</style>

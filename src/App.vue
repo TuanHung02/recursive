@@ -5,7 +5,6 @@
     <TreeItem v-for="item in treeData" :key="item.id" :item="item" />
   </div> -->
   <div style="margin-top: 50px;">
-    <h1>Tree node</h1>
     <ParentTree />
   </div>
 </template>
