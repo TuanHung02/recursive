@@ -1,5 +1,8 @@
 <template>
     <div class="container">
+        <div class="back-white"></div>
+        <div class="back-white-v2"></div>
+
         <TreeNode :node="treeData[0]" v-for="node in treeData" :key="node.id" @update="handleUpdateNode" />
     </div>
 </template>
@@ -209,8 +212,16 @@ onEvent('demoteNode', (parentId, targetId) => {
 .container {
     border: 1px solid rgba(220, 220, 220, 1);
     border-radius: 10px;
-    padding: 38px 28px 18px 0;
+    padding: 0 28px 18px 0;
     max-width: 500px;
-    margin: auto;
+    margin: 0 auto;
 }
+.back-white{
+    width: 100%;
+    height: 18px;
+    z-index: 9999;
+    background-color: white;
+    border-radius: 10px;
+}
+
 </style>

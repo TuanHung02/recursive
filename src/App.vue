@@ -4,7 +4,7 @@
     <h1>Quản lý Cây Phòng Ban</h1>
     <TreeItem v-for="item in treeData" :key="item.id" :item="item" />
   </div> -->
-  <div style="margin-top: 50px;">
+  <div>
     <ParentTree />
   </div>
 </template>
