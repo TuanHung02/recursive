@@ -12,9 +12,9 @@ import { dataList } from '@/data';
 
 const treeData = ref([{ children: dataList }]);
 
-function handleUpdateNode(updatedNode) {
+const handleUpdateNode = (updatedNode) => {
     // Hàm đệ quy để tìm node theo id và cập nhật node
-    function updateNode(node, updatedNode) {
+    const updateNode = (node, updatedNode) => {
         if (node.id === updatedNode.id) {
             Object.assign(node, updatedNode);
             return true;
@@ -42,7 +42,7 @@ function handleUpdateNode(updatedNode) {
 // Event handling
 onEvent('addNode', (id) => {
     // Hàm đệ quy để tìm node theo id và thêm node con mới
-    function addNode(node, id) {
+    const addNode = (node, id) => {
 
         if (node.id === id) {
             const newName = prompt("Nhập tên cho phòng ban mới:");
@@ -78,7 +78,7 @@ onEvent('addNode', (id) => {
 
 onEvent('editNode', (id) => {
     // Hàm đệ quy để tìm node theo id và sửa node
-    function editNode(node, id) {
+    const editNode = (node, id) => {
         if (node.id === id) {
             // Giả định rằng chúng ta có một giao diện đầu vào để sửa tên node
             const newName = prompt("Nhập tên mới cho node:", node.name);
@@ -108,7 +108,7 @@ onEvent('editNode', (id) => {
 
 onEvent('deleteNode', (id) => {
     // Hàm đệ quy để tìm và xóa node theo id
-    function deleteNode(node, id) {
+    const deleteNode = (node, id) => {
         if (!node.children) return false;
         const index = node.children.findIndex(child => child.id === id);
         if (index !== -1) {
@@ -134,7 +134,7 @@ onEvent('deleteNode', (id) => {
 });
 
 onEvent('increaseLevel', (id) => {
-    function increaseLevel(node, parent) {
+    const increaseLevel = (node, parent) => {
         if (node.children) {
             // Find the node and its parent
             for (let i = 0; i < node.children.length; i++) {
@@ -166,7 +166,7 @@ onEvent('increaseLevel', (id) => {
 });
 
 onEvent('demoteNode', (parentId, targetId) => {
-    function demoteNode(node, parentId, targetId) {
+    const demoteNode = (node, parentId, targetId) => {
         if (!node.children) return false;
 
         // Tìm node cha và node mục tiêu

@@ -2,13 +2,17 @@
     <div class="tree-node">
         <div v-if="node.name != null" @contextmenu.prevent="showDropdown" class="tree-node__content">
             <!-- <input type="checkbox" v-model="isChecked" @change="toggleCheck" /> -->
-            <span class="wrapper" @click="toggleCollapse">
-                <div class="node-level">{{ node.level }} </div>
-                <div class="node-code">{{ node.code }}</div>
-                <div class="node-name">{{ node.name }}</div>
-            </span>
+            <div class="container">
+                <span class="wrapper" @click="toggleCollapse">
+                    <div class="node-level">{{ node.level }} </div>
+                    <div class="node-code">{{ node.code }}</div>
+                    <div class="node-name">{{ node.name }}</div>
+                </span>
+            </div>
             <hr v-if="node.name != null" class="node-horizontal">
             <div v-if="node.name != null" class="node-vertical"></div>
+            <div v-if="node.name != null" class="node-vertical-down"></div>
+
 
         </div>
         <!-- <div style="position: relative;">
@@ -45,51 +49,51 @@ const collapsed = ref(false);
 const showMenu = ref(false);
 const dropdownStyle = reactive({ top: '0px', left: '0px' });
 
-function toggleCollapse() {
+const toggleCollapse = () => {
     collapsed.value = !collapsed.value;
 }
 
-// function toggleCheck() {
+// const toggleCheck() => {
 //     emitEvent('checkboxToggled', { id: props.node.id, checked: isChecked.value });
 // }
 
-function showDropdown(event) {
+const showDropdown = (event) => {
     showMenu.value = true;
     dropdownStyle.top = `${event.clientY}px`;
     dropdownStyle.left = `${event.clientX}px`;
     document.addEventListener('click', closeDropdown);
 }
 
-function closeDropdown() {
+const closeDropdown = () => {
     showMenu.value = false;
     document.removeEventListener('click', closeDropdown);
 }
 
-function addNode() {
+const addNode = () => {
     emitEvent('addNode', props.node.id);
     closeDropdown();
 }
 
-function editNode() {
+const editNode = () => {
     emitEvent('editNode', props.node.id);
     closeDropdown();
 }
 
-function deleteNode() {
+const deleteNode = () => {
     emitEvent('deleteNode', props.node.id);
     closeDropdown();
 }
 
-function updateNode(updatedNode) {
+const updateNode = (updatedNode) => {
     emit('update', updatedNode);
 }
 
-function increaseLevel() {
+const increaseLevel = () => {
     emitEvent('increaseLevel', props.node.id);
     closeDropdown();
 }
 
-function decreaseLevel() {
+const decreaseLevel = () => {
     emitEvent('demoteNode', props.node.id);
     closeDropdown();
 }
@@ -132,6 +136,12 @@ function decreaseLevel() {
     }
 }
 
+.container {
+    height: 39px;
+    background-color: white;
+    width: 100%;
+}
+
 .wrapper {
     display: flex;
     align-items: center;
@@ -144,7 +154,6 @@ function decreaseLevel() {
     text-align: left;
     color: rgba(102, 102, 102, 1);
     width: 100%;
-    margin-bottom: 13px;
 }
 
 .node-level {
@@ -181,6 +190,5 @@ function decreaseLevel() {
     left: -12px;
     bottom: calc(100% - 18px);
     z-index: -99999;
-
 }
 </style>
