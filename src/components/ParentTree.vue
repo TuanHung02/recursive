@@ -2,6 +2,7 @@
     <div class="container">
         <div class="back-white"></div>
         <div class="back-white-v2"></div>
+        <InputModel :show="modalVisible" :title="modalTitle" @confirm="handleModalConfirm" @close="handleModalClose" />
 
         <TreeNode :node="treeData[0]" v-for="node in treeData" :key="node.id" @update="handleUpdateNode" />
     </div>
@@ -12,8 +13,46 @@ import { ref } from 'vue';
 import TreeNode from './TreeNode.vue';
 import { onEvent } from '@/eventBus';
 import { dataList } from '@/data';
+import InputModel from './InputModel.vue';
 
 const treeData = ref([{ children: dataList }]);
+
+const modalVisible = ref(false);
+const modalTitle = ref('');
+const modalType = ref(''); // 'add' or 'edit' based on the operation type
+const targetNode = ref(null)
+const openModal = (title, { parentNode = null, currentNode = null }) => {
+    modalTitle.value = title;
+    modalVisible.value = true;
+    modalType.value = parentNode ? 'add' : 'edit';
+    targetNode.value = parentNode || currentNode;
+};
+
+const handleModalConfirm = ({ name, code }) => {
+    if (modalType.value === 'add') {
+        const parentNode = targetNode.value;
+
+        // Tạo `newNode` với name và code từ modal
+        const newNode = {
+            id: `${parentNode.id}-${parentNode.children.length}`, // ID dựa trên parentNode
+            name, // `name` từ modal
+            level: parentNode.level + 1, // level tự động tăng lên 1
+            code, // `code` từ modal
+            children: [], // children ban đầu là rỗng
+        };
+
+        // Thêm `newNode` vào children của parentNode
+        parentNode.children.push(newNode);
+        console.log('Đã thêm node mới:', newNode);
+    }
+
+    modalVisible.value = false; // Đóng modal
+};
+
+
+const handleModalClose = () => {
+    modalVisible.value = false;
+};
 
 const handleUpdateNode = (updatedNode) => {
     // Hàm đệ quy để tìm node theo id và cập nhật node
@@ -48,16 +87,19 @@ onEvent('addNode', (id) => {
     const addNode = (node, id) => {
 
         if (node.id === id) {
-            const newName = prompt("Nhập tên cho phòng ban mới:");
-            // const newCode = prompt("Nhập mã code cho phòng ban mới:")
-            const newNode = {
-                id: `${id}-${node.children.length}`, // Tạo id mới dựa trên node cha
-                name: newName,
-                level: node.level + 1,
-                code: `DPM${id}-${node.children.length}`,
-                children: [],
-            };
-            node.children.push(newNode);
+            // const newName = prompt("Nhập tên cho phòng ban mới:");
+            // const a = openModal('Thêm node mới')
+            // // const newCode = prompt("Nhập mã code cho phòng ban mới:")
+            // const newNode = {
+            //     id: `${id}-${node.children.length}`, // Tạo id mới dựa trên node cha
+            //     name: a,
+            //     level: node.level + 1,
+            //     code: `DPM${id}-${node.children.length}`,
+            //     children: [],
+            // };
+            // node.children.push(newNode);
+            openModal('Thêm mới phòng ban', { parentNode: node });
+
             return true;
         }
         if (node.children) {
@@ -216,12 +258,12 @@ onEvent('demoteNode', (parentId, targetId) => {
     max-width: 500px;
     margin: 0 auto;
 }
-.back-white{
+
+.back-white {
     width: 100%;
     height: 18px;
     z-index: 9999;
     background-color: white;
     border-radius: 10px;
 }
-
 </style>

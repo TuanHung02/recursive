@@ -11,9 +11,6 @@
             </div>
             <hr v-if="node.name != null" class="node-horizontal">
             <div v-if="node.name != null" class="node-vertical"></div>
-            <div v-if="node.name != null" class="node-vertical-down"></div>
-
-
         </div>
         <!-- <div style="position: relative;">
             <hr v-if="node.name != null" class="node-horizontal">
@@ -30,7 +27,7 @@
         </div>
 
 
-        <div v-if="!collapsed" class="tree-node__children">
+        <div v-show="!collapsed" class="tree-node__children">
             <TreeNode v-for="child in node.children" :key="child.id" :node="child" @update="updateNode" />
         </div>
     </div>
