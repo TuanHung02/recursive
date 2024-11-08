@@ -1,6 +1,7 @@
 <template>
-    <div class="tree-node">
-        <div v-if="node.name != null" @contextmenu.prevent="showDropdown" class="tree-node__content">
+    <div class="tree-node" @dragover.prevent @dragenter.prevent @drop="onDrop(node)">
+        <div v-if="node.name != null" @contextmenu.prevent="showDropdown" @drag="onDragStart(node)" @dragend="onDragEnd"
+            :draggable="true" class="tree-node__content">
             <!-- <input type="checkbox" v-model="isChecked" @change="toggleCheck" /> -->
             <div class="container">
                 <span class="wrapper" @click="toggleCollapse">
@@ -12,10 +13,6 @@
             <hr v-if="node.name != null" class="node-horizontal">
             <div v-if="node.name != null" class="node-vertical"></div>
         </div>
-        <!-- <div style="position: relative;">
-            <hr v-if="node.name != null" class="node-horizontal">
-            <div v-if="node.name != null" class="node-vertical"></div>
-        </div> -->
 
         <!-- Dropdown menu -->
         <div v-if="showMenu" :style="dropdownStyle" class="dropdown-menu">
@@ -28,7 +25,8 @@
 
 
         <div v-show="!collapsed" class="tree-node__children">
-            <TreeNode v-for="child in node.children" :key="child.id" :node="child" @update="updateNode" />
+            <TreeNode v-for="child in node.children" :key="child.id" :node="child" @update="updateNode"
+                @node-dropped="onNodeDropped" />
         </div>
     </div>
 </template>
@@ -39,7 +37,7 @@ import { emitEvent } from '@/eventBus';
 const props = defineProps({
     node: Object,
 });
-const emit = defineEmits(['update']);
+const emit = defineEmits(['update', 'drop-node']);
 
 // const isChecked = ref(false);
 const collapsed = ref(false);
@@ -94,6 +92,28 @@ const decreaseLevel = () => {
     emitEvent('demoteNode', props.node.id);
     closeDropdown();
 }
+
+const draggingNode = ref(null);
+
+const onDragStart = (node) => {
+    draggingNode.value = node;
+};
+
+const onDragEnd = () => {
+    draggingNode.value = null;
+};
+
+const onDrop = (node) => {
+    if (draggingNode.value && draggingNode.value !== node) {
+        // Emit an event to notify the parent that a node has been dropped
+        emit("node-dropped", { draggedNode: draggingNode.value, targetNode: node });
+    }
+};
+
+// When a node is dropped on a child, bubble the event up to the parent
+const onNodeDropped = (event) => {
+    emit("node-dropped", event);
+};
 </script>
 
 <style scoped>

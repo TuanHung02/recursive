@@ -62,7 +62,6 @@ watch(() => props.show, (newVal) => {
     align-items: center;
     justify-content: center;
     z-index: 999999999999;
-
 }
 
 .modal {
@@ -92,7 +91,6 @@ watch(() => props.show, (newVal) => {
         line-height: 14px;
         text-align: left;
         color: rgba(72, 100, 127, 1);
-
     }
 
     input {
@@ -112,7 +110,6 @@ watch(() => props.show, (newVal) => {
     font-weight: 700;
     text-align: left;
     color: rgba(255, 255, 255, 1);
-    ;
 }
 
 .action {
@@ -158,7 +155,6 @@ watch(() => props.show, (newVal) => {
     color: rgba(72, 100, 127, 1);
     background-color: white;
     cursor: pointer;
-
 }
 </style>
         

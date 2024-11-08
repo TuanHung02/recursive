@@ -3,8 +3,10 @@
         <div class="back-white"></div>
         <div class="back-white-v2"></div>
         <InputModel :show="modalVisible" :title="modalTitle" @confirm="handleModalConfirm" @close="handleModalClose" />
-
-        <TreeNode :node="treeData[0]" v-for="node in treeData" :key="node.id" @update="handleUpdateNode" />
+        
+        <TreeNode :node="node" v-for="node in treeData" :key="node.id" @update="handleUpdateNode"
+        @moveNode="handleMoveNode"
+        />
     </div>
 </template>
 
@@ -16,10 +18,10 @@ import { dataList } from '@/data';
 import InputModel from './InputModel.vue';
 
 const treeData = ref([{ children: dataList }]);
-
+console.log(treeData);
 const modalVisible = ref(false);
 const modalTitle = ref('');
-const modalType = ref(''); // 'add' or 'edit' based on the operation type
+const modalType = ref(''); 
 const targetNode = ref(null)
 const openModal = (title, { parentNode = null, currentNode = null }) => {
     modalTitle.value = title;
@@ -87,17 +89,6 @@ onEvent('addNode', (id) => {
     const addNode = (node, id) => {
 
         if (node.id === id) {
-            // const newName = prompt("Nhập tên cho phòng ban mới:");
-            // const a = openModal('Thêm node mới')
-            // // const newCode = prompt("Nhập mã code cho phòng ban mới:")
-            // const newNode = {
-            //     id: `${id}-${node.children.length}`, // Tạo id mới dựa trên node cha
-            //     name: a,
-            //     level: node.level + 1,
-            //     code: `DPM${id}-${node.children.length}`,
-            //     children: [],
-            // };
-            // node.children.push(newNode);
             openModal('Thêm mới phòng ban', { parentNode: node });
 
             return true;
@@ -245,9 +236,67 @@ onEvent('demoteNode', (parentId, targetId) => {
     } else {
         console.log("Không tìm thấy node để giảm cấp.");
     }
+
 });
+// const findAndRemoveNode = (nodes, nodeId) => {
+//     for (let i = 0; i < nodes.length; i++) {
+//         const node = nodes[i];
+//         if (node.id === nodeId) {
+//             return nodes.splice(i, 1)[0];
+//         }
+//         if (node.children && node.children.length > 0) {
+//             const foundNode = findAndRemoveNode(node.children, nodeId);
+//             if (foundNode) return foundNode;
+//         }
+//     }
+//     return null;
+// };
 
+// const findNode = (nodes, nodeId) => {
+//     for (let node of nodes) {
+//         if (node.id === nodeId) return node;
+//         if (node.children && node.children.length > 0) {
+//             const foundNode = findNode(node.children, nodeId);
+//             if (foundNode) return foundNode;
+//         }
+//     }
+//     return null;
+// };
 
+// const handleDropNode = ({ targetNodeId, draggedNodeId }) => {
+//     console.log(`Dragged Node ID: ${draggedNodeId}, Target Node ID: ${targetNodeId}`);
+//     const draggedNode = findAndRemoveNode(treeData.value, draggedNodeId);
+//     const targetNode = findNode(treeData.value, targetNodeId);
+
+//     if (draggedNode && targetNode) {
+//         draggedNode.level = targetNode.level + 1; // Update level if necessary
+//         targetNode.children.push(draggedNode); // Move the dragged node to the target node's children
+//         console.log(`Node ${draggedNodeId} moved under Node ${targetNodeId}`);
+//     } else {
+//         console.log("Drag-and-drop operation failed.");
+//     }
+// };
+function handleMoveNode({ draggedNode, targetNode }) {
+  // Xóa draggedNode khỏi vị trí cũ
+  removeNode(draggedNode.id, treeData);
+  
+  // Thêm draggedNode vào targetNode.children hoặc làm con của targetNode
+  targetNode.children = targetNode.children || [];
+  targetNode.children.push(draggedNode);
+}
+
+// Hàm xóa node khỏi cấu trúc cây
+function removeNode(id, nodes) {
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].id === id) {
+      nodes.splice(i, 1);
+      return;
+    }
+    if (nodes[i].children) {
+      removeNode(id, nodes[i].children);
+    }
+  }
+}
 
 </script>
 <style scoped>
@@ -256,7 +305,6 @@ onEvent('demoteNode', (parentId, targetId) => {
     border-radius: 10px;
     padding: 0 28px 18px 0;
     max-width: 500px;
-    margin: 0 auto;
 }
 
 .back-white {
