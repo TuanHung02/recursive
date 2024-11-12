@@ -3,10 +3,11 @@
         <div class="back-white"></div>
         <div class="back-white-v2"></div>
         <InputModel :show="modalVisible" :title="modalTitle" @confirm="handleModalConfirm" @close="handleModalClose" />
-        
-        <TreeNode :node="node" v-for="node in treeData" :key="node.id" @update="handleUpdateNode"
-        @moveNode="handleMoveNode"
-        />
+        <vuedraggable v-model="treeData" group="departments" item-key="id" :move="onMove">
+            <TreeNode :node="node" v-for="node in treeData" :key="node.id" @update="handleUpdateNode"
+                @moveNode="handleMoveNode" />
+        </vuedraggable>
+
     </div>
 </template>
 
@@ -18,10 +19,9 @@ import { dataList } from '@/data';
 import InputModel from './InputModel.vue';
 
 const treeData = ref([{ children: dataList }]);
-console.log(treeData);
 const modalVisible = ref(false);
 const modalTitle = ref('');
-const modalType = ref(''); 
+const modalType = ref('');
 const targetNode = ref(null)
 const openModal = (title, { parentNode = null, currentNode = null }) => {
     modalTitle.value = title;
@@ -34,7 +34,6 @@ const handleModalConfirm = ({ name, code }) => {
     if (modalType.value === 'add') {
         const parentNode = targetNode.value;
 
-        // Tạo `newNode` với name và code từ modal
         const newNode = {
             id: `${parentNode.id}-${parentNode.children.length}`, // ID dựa trên parentNode
             name, // `name` từ modal
@@ -43,7 +42,6 @@ const handleModalConfirm = ({ name, code }) => {
             children: [], // children ban đầu là rỗng
         };
 
-        // Thêm `newNode` vào children của parentNode
         parentNode.children.push(newNode);
         console.log('Đã thêm node mới:', newNode);
     }
@@ -277,25 +275,25 @@ onEvent('demoteNode', (parentId, targetId) => {
 //     }
 // };
 function handleMoveNode({ draggedNode, targetNode }) {
-  // Xóa draggedNode khỏi vị trí cũ
-  removeNode(draggedNode.id, treeData);
-  
-  // Thêm draggedNode vào targetNode.children hoặc làm con của targetNode
-  targetNode.children = targetNode.children || [];
-  targetNode.children.push(draggedNode);
+    // Xóa draggedNode khỏi vị trí cũ
+    removeNode(draggedNode.id, treeData);
+
+    // Thêm draggedNode vào targetNode.children hoặc làm con của targetNode
+    targetNode.children = targetNode.children || [];
+    targetNode.children.push(draggedNode);
 }
 
 // Hàm xóa node khỏi cấu trúc cây
 function removeNode(id, nodes) {
-  for (let i = 0; i < nodes.length; i++) {
-    if (nodes[i].id === id) {
-      nodes.splice(i, 1);
-      return;
+    for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i].id === id) {
+            nodes.splice(i, 1);
+            return;
+        }
+        if (nodes[i].children) {
+            removeNode(id, nodes[i].children);
+        }
     }
-    if (nodes[i].children) {
-      removeNode(id, nodes[i].children);
-    }
-  }
 }
 
 </script>
@@ -305,6 +303,7 @@ function removeNode(id, nodes) {
     border-radius: 10px;
     padding: 0 28px 18px 0;
     max-width: 500px;
+    min-width: 430px;
 }
 
 .back-white {

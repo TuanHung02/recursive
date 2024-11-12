@@ -1,8 +1,7 @@
 <template>
-    <div class="tree-node" @dragover.prevent @dragenter.prevent @drop="onDrop(node)">
-        <div v-if="node.name != null" @contextmenu.prevent="showDropdown" @drag="onDragStart(node)" @dragend="onDragEnd"
-            :draggable="true" class="tree-node__content">
-            <!-- <input type="checkbox" v-model="isChecked" @change="toggleCheck" /> -->
+    <div class="tree-node">
+
+        <div v-if="node.name != null" @contextmenu.prevent="showDropdown" class="tree-node__content">
             <div class="container">
                 <span class="wrapper" @click="toggleCollapse">
                     <div class="node-level">{{ node.level }} </div>
@@ -20,26 +19,33 @@
             <button @click="editNode">Sửa phòng ban</button>
             <button @click="deleteNode">Xóa phòng ban</button>
             <button v-if="node.level !== 1" @click="increaseLevel">Nâng level</button>
-            <button @click="decreaseLevel">Giảm level</button>
+            <!-- <button @click="decreaseLevel">Giảm level</button> -->
         </div>
 
 
         <div v-show="!collapsed" class="tree-node__children">
-            <TreeNode v-for="child in node.children" :key="child.id" :node="child" @update="updateNode"
-                @node-dropped="onNodeDropped" />
+            <draggable :list="node.children" group="departments" item-key="id">
+                <template #item="{ element: child }">
+                    <TreeNode :key="child.id" :node="child" @updateNode="updateNode" />
+                </template>
+            </draggable>
+
         </div>
+
     </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue';
 import { emitEvent } from '@/eventBus';
+import draggable from 'vuedraggable';
+
 const props = defineProps({
     node: Object,
+    maxLevel: Number
 });
-const emit = defineEmits(['update', 'drop-node']);
+const emit = defineEmits(['update', 'update-level']);
 
-// const isChecked = ref(false);
 const collapsed = ref(false);
 const showMenu = ref(false);
 const dropdownStyle = reactive({ top: '0px', left: '0px' });
@@ -47,10 +53,6 @@ const dropdownStyle = reactive({ top: '0px', left: '0px' });
 const toggleCollapse = () => {
     collapsed.value = !collapsed.value;
 }
-
-// const toggleCheck() => {
-//     emitEvent('checkboxToggled', { id: props.node.id, checked: isChecked.value });
-// }
 
 const showDropdown = (event) => {
     showMenu.value = true;
@@ -87,33 +89,6 @@ const increaseLevel = () => {
     emitEvent('increaseLevel', props.node.id);
     closeDropdown();
 }
-
-const decreaseLevel = () => {
-    emitEvent('demoteNode', props.node.id);
-    closeDropdown();
-}
-
-const draggingNode = ref(null);
-
-const onDragStart = (node) => {
-    draggingNode.value = node;
-};
-
-const onDragEnd = () => {
-    draggingNode.value = null;
-};
-
-const onDrop = (node) => {
-    if (draggingNode.value && draggingNode.value !== node) {
-        // Emit an event to notify the parent that a node has been dropped
-        emit("node-dropped", { draggedNode: draggingNode.value, targetNode: node });
-    }
-};
-
-// When a node is dropped on a child, bubble the event up to the parent
-const onNodeDropped = (event) => {
-    emit("node-dropped", event);
-};
 </script>
 
 <style scoped>
@@ -135,7 +110,7 @@ const onNodeDropped = (event) => {
     flex-direction: column;
     justify-content: center;
     border-radius: 4px;
-    height: 200px;
+    height: 160px;
     z-index: 9999;
 
     button {
