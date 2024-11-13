@@ -209,7 +209,7 @@ const handleDrop = (event) => {
 
 .node-vertical {
     width: 2px;
-    height: calc(100% );
+    height: calc(100% + 100vh);
     display: inline-block;
     position: absolute;
     background-color: rgba(220, 220, 220, 1);
