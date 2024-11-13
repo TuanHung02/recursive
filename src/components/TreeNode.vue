@@ -1,12 +1,14 @@
 <template>
     <div class="tree-node">
-
         <div v-if="node.name != null" @contextmenu.prevent="showDropdown" class="tree-node__content">
             <div class="container">
                 <span class="wrapper" @click="toggleCollapse">
-                    <div class="node-level">{{ node.level }} </div>
+                    <div class="node-level">{{ node.level }}</div>
                     <div class="node-code">{{ node.code }}</div>
                     <div class="node-name">{{ node.name }}</div>
+                    <span v-if="node.children && node.children.length > 0" class="expand-icon">
+                        {{ collapsed ? '+' : '-' }}
+                    </span>
                 </span>
             </div>
             <hr v-if="node.name != null" class="node-horizontal">
@@ -16,12 +18,10 @@
         <!-- Dropdown menu -->
         <div v-if="showMenu" :style="dropdownStyle" class="dropdown-menu">
             <button @click="addNode">Thêm phòng ban</button>
-            <button @click="editNode">Sửa phòng ban</button>
             <button @click="deleteNode">Xóa phòng ban</button>
             <button :disabled="node.level == 1" @click="increaseLevel">Nâng level</button>
-            <!-- <button @click="decreaseLevel">Giảm level</button> -->
+            <button @click="decreaseLevel">Giảm level</button>
         </div>
-
 
         <div v-show="!collapsed" class="tree-node__children">
             <draggable :list="node.children" group="departments" item-key="id" @change="handleDrop">
@@ -29,11 +29,10 @@
                     <TreeNode :key="child.id" :node="child" @updateNode="updateNode" />
                 </template>
             </draggable>
-
         </div>
-
     </div>
 </template>
+
 
 <script setup>
 import { ref, reactive } from 'vue';
@@ -72,10 +71,10 @@ const addNode = () => {
     closeDropdown();
 }
 
-const editNode = () => {
-    emitEvent('editNode', props.node.id);
-    closeDropdown();
-}
+// const editNode = () => {
+//     emitEvent('editNode', props.node.id);
+//     closeDropdown();
+// }
 
 const deleteNode = () => {
     emitEvent('deleteNode', props.node.id);
@@ -91,31 +90,36 @@ const increaseLevel = () => {
     closeDropdown();
 }
 
+const decreaseLevel = () => {
+    emitEvent('decreaseLevel', props.node.id);
+    closeDropdown();
+}
+
 const handleDrop = (event) => {
-  const { added } = event;
-  if (added && added.element) {
-    const droppedNode = added.element;
+    const { added } = event;
+    if (added && added.element) {
+        const droppedNode = added.element;
 
-    // Recursive function to count all parent levels
-    const countAllParents = (nodes, targetNode, level = 0) => {
-      for (const node of nodes) {
-        if (node.children && node.children.includes(targetNode)) {
-          // Check for deeper parents, and add the count to the current level
-          return level + 1 
-        }
-        if (node.children) {
-          const parentLevel = countAllParents(node.children, targetNode, level + 1);
-          if (parentLevel) return parentLevel;
-        }
-      }
-      return 0;
-    };
+        // Recursive function to count all parent levels
+        const countAllParents = (nodes, targetNode, level = 0) => {
+            for (const node of nodes) {
+                if (node.children && node.children.includes(targetNode)) {
+                    // Check for deeper parents, and add the count to the current level
+                    return level + 1
+                }
+                if (node.children) {
+                    const parentLevel = countAllParents(node.children, targetNode, level + 1);
+                    if (parentLevel) return parentLevel;
+                }
+            }
+            return 0;
+        };
 
-    // Calculate the level of the dropped node considering all ancestors
-    const level = countAllParents(treeData.value, droppedNode);
-    droppedNode.level = level;
-    console.log('Dropped node level updated to:', droppedNode.level);
-  }
+        // Calculate the level of the dropped node considering all ancestors
+        const level = countAllParents(treeData.value, droppedNode);
+        droppedNode.level = level;
+        console.log('Dropped node level updated to:', droppedNode.level);
+    }
 };
 
 </script>
@@ -212,5 +216,13 @@ const handleDrop = (event) => {
     left: -12px;
     bottom: calc(100% - 18px);
     z-index: -99999;
+}
+
+.expand-icon {
+    position: absolute;
+    right: 0;
+    font-size: 16px;
+    color: #000000;
+    cursor: pointer;
 }
 </style>

@@ -2,7 +2,9 @@
   <div style="display: flex; gap: 31px; justify-content: center;">
 
     <div class="wrap">
+      <input v-model="searchQuery" placeholder="Tìm kiếm phòng ban" @input="filterDepartments" />
       <draggable v-model="listData1" group="departments" :animation="300" itemKey="id">
+
         <template #item="{ element: department }">
           <TheNode :node="department" :key="department.id" />
         </template>
@@ -40,12 +42,23 @@ const modalVisible = ref(false);
 const modalTitle = ref('');
 const modalType = ref('');
 const targetNode = ref(null)
+const searchQuery = ref("");
 
 const openModal = (title, { parentNode = null, currentNode = null }) => {
   modalTitle.value = title;
   modalVisible.value = true;
   modalType.value = parentNode ? 'add' : 'edit';
   targetNode.value = parentNode || currentNode;
+};
+
+const filterDepartments = () => {
+  if (searchQuery.value.trim() === "") {
+    listData1.value = ListTreeData1; // Nếu không có tìm kiếm, hiển thị tất cả
+  } else {
+    listData1.value = ListTreeData1.filter(department =>
+      department.name.toLowerCase().includes(searchQuery.value.toLowerCase()) // Tìm kiếm không phân biệt chữ hoa hay chữ thường
+    );
+  }
 };
 
 const handleModalConfirm = ({ name, code }) => {
@@ -199,38 +212,6 @@ onEvent('deleteNode', (id) => {
   }
 });
 
-// onEvent('increaseLevel', (id) => {
-//   const increaseLevel = (node, parent) => {
-//     if (node.children) {
-//       // Find the node and its parent
-//       for (let i = 0; i < node.children.length; i++) {
-//         const child = node.children[i];
-//         if (child.id === id) {
-//           // Remove the child from the current parent
-//           const [movedNode] = node.children.splice(i, 1);
-
-//           // Assign the same level as the parent
-//           movedNode.level = node.level;
-//           movedNode.children = movedNode.children.map(item => ({ ...item, level: node.level + 1 }));
-
-//           // Add the child node as a sibling to the parent
-//           parent.children.push(movedNode);
-//           return true;
-//         } else if (increaseLevel(child, node)) {
-//           return true;
-//         }
-//       }
-//     }
-//     return false;
-//   }
-
-//   const rootNode = treeData.value[0];
-//   if (increaseLevel(rootNode, rootNode)) {
-//     console.log("Node đã được nâng cấp lên cùng cấp với node cha:", id);
-//   } else {
-//     console.log("Không tìm thấy node để tăng cấp.");
-//   }
-// });
 onEvent('increaseLevel', (id) => {
   const increaseLevel = (node, parent) => {
     if (node.children) {
@@ -255,7 +236,7 @@ onEvent('increaseLevel', (id) => {
           };
           updateChildLevels(movedNode);
 
-          // Add the child node as a sibling to the parent
+          // Add the child node as a sibling to the       
           parent.children.push(movedNode);
           return true;
         } else if (increaseLevel(child, node)) {
@@ -273,6 +254,55 @@ onEvent('increaseLevel', (id) => {
     console.log("Không tìm thấy node để tăng cấp.");
   }
 });
+
+onEvent('decreaseLevel', (id) => {
+  // Hàm đệ quy để tìm node theo id và giảm cấp độ
+  const decreaseLevel = (node) => {
+    if (node.children) {
+      for (let i = 0; i < node.children.length; i++) {
+        const child = node.children[i];
+        if (child.id === id) {
+          // Tìm nút đồng cấp trước đó
+          const sibling = node.children[i - 1];
+          if (sibling) {
+            // Di chuyển node vào làm con của sibling trước đó
+            const [movedNode] = node.children.splice(i, 1); // Xóa node khỏi cha hiện tại
+            sibling.children.push(movedNode); // Thêm node vào làm con của sibling
+            movedNode.level = sibling.level + 1; // Cập nhật cấp độ của node
+
+            // Cập nhật cấp độ của tất cả các con của node đã di chuyển
+            const updateChildLevels = (childNode) => {
+              if (childNode.children) {
+                childNode.children.forEach(grandChild => {
+                  grandChild.level = childNode.level + 1;
+                  updateChildLevels(grandChild); // Đệ quy cập nhật cấp độ con
+                });
+              }
+            };
+            updateChildLevels(movedNode);
+
+            console.log("Node đã được giảm cấp, trở thành con của node đồng cấp trước:", id);
+            return true;
+          } else {
+            console.log("Không tìm thấy sibling trước để giảm cấp.");
+          }
+        }
+        if (decreaseLevel(child, node)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const rootNode = treeData.value[0];
+  if (decreaseLevel(rootNode, rootNode)) {
+    console.log("Node đã được giảm cấp.");
+  } else {
+    console.log("Không tìm thấy node để giảm cấp.");
+  }
+});
+
 
 </script>
 
@@ -304,5 +334,24 @@ h1 {
   z-index: 9999;
   background-color: white;
   border-radius: 10px;
+}
+
+input {
+  display: flex;
+  margin-left: 30px;
+  margin-bottom: 15px;
+  border: 2px solid rgba(220, 220, 220, 1);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  text-align: left;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  color: rgba(72, 100, 127, 1);
+  width: calc(100% - 40px);
+  height: 36px;
+  outline: none;
+  border-radius: 4px;
+  padding: 0 10px;
 }
 </style>
