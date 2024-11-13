@@ -14,7 +14,7 @@
       <div class="back-white"></div>
       <div class="back-white-v2"></div>
       <InputModel :show="modalVisible" :title="modalTitle" @confirm="handleModalConfirm" @close="handleModalClose" />
-      <draggable v-model="treeData" group="departments" :animation="300" itemKey="id">
+      <draggable v-model="treeData" group="departments" :animation="300" itemKey="id" @change="handleDrop">
         <template #item="{ element: department }">
           <TreeNode :node="department" :key="department.id" @update="handleUpdateNode" />
         </template>
@@ -63,7 +63,7 @@ const handleModalConfirm = ({ name, code }) => {
     parentNode.children.push(newNode);
     console.log('Đã thêm node mới:', newNode);
   }
-  modalVisible.value = false; 
+  modalVisible.value = false;
 };
 
 
@@ -95,7 +95,24 @@ const handleUpdateNode = (updatedNode) => {
     console.log("Không tìm thấy node để cập nhật.");
   }
 }
+const handleDrop = (node) => {
+  const countParents = (nodes, targetNode, level = 0) => {
+    for (const parentNode of nodes) {
+      if (parentNode.children && parentNode.children.includes(targetNode)) {
+        return level + 1;
+      }
+      if (parentNode.children) {
+        const parentLevel = countParents(parentNode.children, targetNode, level + 1);
+        if (parentLevel) return parentLevel;
+      }
+    }
+    return level;
+  };
 
+  const level = countParents(treeData.value, node);
+  node.level = level;
+  console.log('Node level updated to:', node.level);
+};
 
 // Event handling
 onEvent('addNode', (id) => {
@@ -182,6 +199,38 @@ onEvent('deleteNode', (id) => {
   }
 });
 
+// onEvent('increaseLevel', (id) => {
+//   const increaseLevel = (node, parent) => {
+//     if (node.children) {
+//       // Find the node and its parent
+//       for (let i = 0; i < node.children.length; i++) {
+//         const child = node.children[i];
+//         if (child.id === id) {
+//           // Remove the child from the current parent
+//           const [movedNode] = node.children.splice(i, 1);
+
+//           // Assign the same level as the parent
+//           movedNode.level = node.level;
+//           movedNode.children = movedNode.children.map(item => ({ ...item, level: node.level + 1 }));
+
+//           // Add the child node as a sibling to the parent
+//           parent.children.push(movedNode);
+//           return true;
+//         } else if (increaseLevel(child, node)) {
+//           return true;
+//         }
+//       }
+//     }
+//     return false;
+//   }
+
+//   const rootNode = treeData.value[0];
+//   if (increaseLevel(rootNode, rootNode)) {
+//     console.log("Node đã được nâng cấp lên cùng cấp với node cha:", id);
+//   } else {
+//     console.log("Không tìm thấy node để tăng cấp.");
+//   }
+// });
 onEvent('increaseLevel', (id) => {
   const increaseLevel = (node, parent) => {
     if (node.children) {
@@ -194,6 +243,17 @@ onEvent('increaseLevel', (id) => {
 
           // Assign the same level as the parent
           movedNode.level = node.level;
+
+          // Recursively update the level of all descendants (children, grandchildren, etc.)
+          const updateChildLevels = (childNode) => {
+            if (childNode.children) {
+              childNode.children.forEach(grandChild => {
+                grandChild.level = childNode.level + 1;
+                updateChildLevels(grandChild); // Recursive call for deep nested children
+              });
+            }
+          };
+          updateChildLevels(movedNode);
 
           // Add the child node as a sibling to the parent
           parent.children.push(movedNode);
@@ -213,12 +273,14 @@ onEvent('increaseLevel', (id) => {
     console.log("Không tìm thấy node để tăng cấp.");
   }
 });
+
 </script>
 
 <style scoped>
 h1 {
   text-align: center;
 }
+
 .wrap {
   border: 1px solid rgba(220, 220, 220, 1);
   border-radius: 10px;

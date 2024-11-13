@@ -4,13 +4,12 @@
         <div class="modal">
             <div class="title">{{ title }}</div>
             <div class="content">
-                <div class="f-input">
-
+                <div class="f-input" style="position: relative;" :class="{ 'error': nameError }">
                     <label>Tên phòng ban</label>
                     <input v-model="name" type="text" placeholder="Tên phòng ban" />
+                    <p v-if="nameError" class="error-message">Tên phòng ban không được để trống, không chứ ký tự đặc biệt</p>
                 </div>
                 <div class="f-input">
-
                     <label>Mã phòng ban </label>
                     <input v-model="code" type="text" placeholder="Mã phòng ban (không bắt buộc)" />
                 </div>
@@ -19,10 +18,10 @@
                     <button class="btn-cf" @click="confirm">Lưu</button>
                 </div>
             </div>
-
         </div>
     </div>
 </template>
+
 
 <script setup>
 import { ref, defineProps, defineEmits, watch } from 'vue';
@@ -33,24 +32,63 @@ const props = defineProps({
     initialName: String,
     initialCode: String
 });
+const specialCharRegex = /[^a-zA-Z0-9\s]/; // Kiểm tra ký tự đặc biệt
 
 const emits = defineEmits(['confirm', 'close']);
 
 const name = ref(props.initialName || '');
 const code = ref(props.initialCode || '');
+const nameError = ref(false);  // Lưu lỗi cho trường tên phòng ban
+const codeError = ref(false);  // Lưu lỗi cho trường mã phòng ban
 
 const close = () => emits('close');
-const confirm = () => emits('confirm', { name: name.value, code: code.value });
+
+const validateInputs = () => {
+    // Kiểm tra tên phòng ban không để trống và không chứa ký tự đặc biệt
+    nameError.value = !name.value.trim() || specialCharRegex.test(name.value);
+
+    // Kiểm tra mã phòng ban không để trống và không chứa ký tự đặc biệt
+    codeError.value = specialCharRegex.test(code.value);  // Mã phòng ban không bắt buộc nhưng phải không chứa ký tự đặc biệt
+
+    return !nameError.value && !codeError.value;
+};
+
+const confirm = () => {
+    if (validateInputs()) {
+        emits('confirm', { name: name.value, code: code.value });
+    }
+};
 
 watch(() => props.show, (newVal) => {
     if (newVal) {
         name.value = props.initialName || '';
         code.value = props.initialCode || '';
+        nameError.value = false;  // Reset lỗi khi modal mở
+        codeError.value = false;
     }
 });
 </script>
 
+
 <style scoped>
+.f-input.error input {
+    border-color: rgba(255, 119, 119, 1);
+}
+
+.error-message {
+    color: rgba(255, 119, 119, 1);
+    font-size: 8px;
+    font-size: 8px;
+    font-weight: 400;
+    line-height: 14px;
+    text-align: right;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
+    position: absolute;
+    top: calc(100% - 8px);
+    right: 0;
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -78,6 +116,7 @@ watch(() => props.show, (newVal) => {
     align-items: center;
     gap: 25px;
 }
+
 
 .f-input {
     display: flex;
@@ -134,9 +173,9 @@ watch(() => props.show, (newVal) => {
     background-color: rgba(72, 100, 127, 1);
     opacity: 0.4;
     cursor: pointer;
-
+    opacity: 1;
     &:hover {
-        opacity: 1;
+        opacity: 0.8;
         transition: 0.2s;
     }
 }
@@ -155,6 +194,9 @@ watch(() => props.show, (newVal) => {
     color: rgba(72, 100, 127, 1);
     background-color: white;
     cursor: pointer;
+    &:hover {
+        background-color: rgb(236, 236, 236);
+        transition: 0.2s;
+    }
 }
 </style>
-        

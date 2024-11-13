@@ -18,13 +18,13 @@
             <button @click="addNode">Thêm phòng ban</button>
             <button @click="editNode">Sửa phòng ban</button>
             <button @click="deleteNode">Xóa phòng ban</button>
-            <button v-if="node.level !== 1" @click="increaseLevel">Nâng level</button>
+            <button :disabled="node.level == 1" @click="increaseLevel">Nâng level</button>
             <!-- <button @click="decreaseLevel">Giảm level</button> -->
         </div>
 
 
         <div v-show="!collapsed" class="tree-node__children">
-            <draggable :list="node.children" group="departments" item-key="id">
+            <draggable :list="node.children" group="departments" item-key="id" @change="handleDrop">
                 <template #item="{ element: child }">
                     <TreeNode :key="child.id" :node="child" @updateNode="updateNode" />
                 </template>
@@ -39,10 +39,11 @@
 import { ref, reactive } from 'vue';
 import { emitEvent } from '@/eventBus';
 import draggable from 'vuedraggable';
+import { dataList } from '@/data';
+const treeData = ref([{ children: dataList }]);
 
 const props = defineProps({
     node: Object,
-    maxLevel: Number
 });
 const emit = defineEmits(['update', 'update-level']);
 
@@ -89,6 +90,34 @@ const increaseLevel = () => {
     emitEvent('increaseLevel', props.node.id);
     closeDropdown();
 }
+
+const handleDrop = (event) => {
+  const { added } = event;
+  if (added && added.element) {
+    const droppedNode = added.element;
+
+    // Recursive function to count all parent levels
+    const countAllParents = (nodes, targetNode, level = 0) => {
+      for (const node of nodes) {
+        if (node.children && node.children.includes(targetNode)) {
+          // Check for deeper parents, and add the count to the current level
+          return level + 1 
+        }
+        if (node.children) {
+          const parentLevel = countAllParents(node.children, targetNode, level + 1);
+          if (parentLevel) return parentLevel;
+        }
+      }
+      return 0;
+    };
+
+    // Calculate the level of the dropped node considering all ancestors
+    const level = countAllParents(treeData.value, droppedNode);
+    droppedNode.level = level;
+    console.log('Dropped node level updated to:', droppedNode.level);
+  }
+};
+
 </script>
 
 <style scoped>
@@ -162,6 +191,7 @@ const increaseLevel = () => {
 .node-code {
     margin-left: 8px;
     margin-right: 30px;
+    min-width: 74px;
 }
 
 .node-horizontal {
@@ -175,7 +205,7 @@ const increaseLevel = () => {
 
 .node-vertical {
     width: 2px;
-    height: calc(100% + 100vh);
+    height: calc(100%);
     display: inline-block;
     position: absolute;
     background-color: rgba(220, 220, 220, 1);

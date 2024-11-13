@@ -88,10 +88,13 @@ defineProps({
     text-align: center;
     background-color: rgba(72, 100, 127, 1);
     color: rgba(255, 255, 255, 1);
+
 }
 
 .node-code {
     margin-left: 8px;
     margin-right: 30px;
+    min-width: 74px;
+
 }
 </style>
