@@ -32,24 +32,20 @@ const props = defineProps({
     initialName: String,
     initialCode: String
 });
-const specialCharRegex = /[^a-zA-Z0-9\s]/; // Kiểm tra ký tự đặc biệt
+const specialCharRegex = /[!@#$%^&*()_+]/g;
 
 const emits = defineEmits(['confirm', 'close']);
 
 const name = ref(props.initialName || '');
 const code = ref(props.initialCode || '');
-const nameError = ref(false);  // Lưu lỗi cho trường tên phòng ban
-const codeError = ref(false);  // Lưu lỗi cho trường mã phòng ban
+const nameError = ref(false);  
+const codeError = ref(false);  
 
 const close = () => emits('close');
 
 const validateInputs = () => {
-    // Kiểm tra tên phòng ban không để trống và không chứa ký tự đặc biệt
     nameError.value = !name.value.trim() || specialCharRegex.test(name.value);
-
-    // Kiểm tra mã phòng ban không để trống và không chứa ký tự đặc biệt
-    codeError.value = specialCharRegex.test(code.value);  // Mã phòng ban không bắt buộc nhưng phải không chứa ký tự đặc biệt
-
+    codeError.value = specialCharRegex.test(code.value); 
     return !nameError.value && !codeError.value;
 };
 
@@ -63,7 +59,7 @@ watch(() => props.show, (newVal) => {
     if (newVal) {
         name.value = props.initialName || '';
         code.value = props.initialCode || '';
-        nameError.value = false;  // Reset lỗi khi modal mở
+        nameError.value = false;  
         codeError.value = false;
     }
 });
