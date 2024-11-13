@@ -149,7 +149,7 @@ onEvent('addNode', (id) => {
   // Bắt đầu tìm kiếm từ gốc
   const rootNode = treeData.value[0];
   if (addNode(rootNode, id)) {
-    console.log('Đã thêm node mới dưới:', id);
+    console.log('Thêm node mới dưới:', id);
   } else {
     console.log('Không tìm thấy node để thêm.');
   }
@@ -179,7 +179,7 @@ onEvent('editNode', (id) => {
   // Bắt đầu tìm kiếm từ gốc
   const rootNode = treeData.value[0];
   if (editNode(rootNode, id)) {
-    console.log('Đã sửa node:', id);
+    console.log('Sửa node:', id);
   } else {
     console.log('Không tìm thấy node để sửa.');
   }
