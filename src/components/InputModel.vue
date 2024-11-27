@@ -7,7 +7,8 @@
                 <div class="f-input" style="position: relative;" :class="{ 'error': nameError }">
                     <label>Tên phòng ban</label>
                     <input v-model="name" type="text" placeholder="Tên phòng ban" />
-                    <p v-if="nameError" class="error-message">Tên phòng ban không được để trống, không chứ ký tự đặc biệt</p>
+                    <p v-if="nameError" class="error-message">Tên phòng ban không được để trống, không chứa ký tự đặc
+                        biệt</p>
                 </div>
                 <div class="f-input">
                     <label>Mã phòng ban </label>
@@ -38,14 +39,14 @@ const emits = defineEmits(['confirm', 'close']);
 
 const name = ref(props.initialName || '');
 const code = ref(props.initialCode || '');
-const nameError = ref(false);  
-const codeError = ref(false);  
+const nameError = ref(false);
+const codeError = ref(false);
 
 const close = () => emits('close');
 
 const validateInputs = () => {
     nameError.value = !name.value.trim() || specialCharRegex.test(name.value);
-    codeError.value = specialCharRegex.test(code.value); 
+    codeError.value = specialCharRegex.test(code.value);
     return !nameError.value && !codeError.value;
 };
 
@@ -59,7 +60,7 @@ watch(() => props.show, (newVal) => {
     if (newVal) {
         name.value = props.initialName || '';
         code.value = props.initialCode || '';
-        nameError.value = false;  
+        nameError.value = false;
         codeError.value = false;
     }
 });
@@ -170,6 +171,7 @@ watch(() => props.show, (newVal) => {
     opacity: 0.4;
     cursor: pointer;
     opacity: 1;
+
     &:hover {
         opacity: 0.8;
         transition: 0.2s;
@@ -190,6 +192,7 @@ watch(() => props.show, (newVal) => {
     color: rgba(72, 100, 127, 1);
     background-color: white;
     cursor: pointer;
+
     &:hover {
         background-color: rgb(236, 236, 236);
         transition: 0.2s;
