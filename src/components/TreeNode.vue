@@ -11,8 +11,9 @@
                     </span>
                 </span>
             </div>
-            <hr v-if="node.name != null" class="node-horizontal">
-            <div v-if="node.name != null" class="node-vertical"></div>
+
+            <hr v-if="node.name != null && props.isLine" class="node-horizontal">
+            <div v-if="node.name != null && props.isLine" class="node-vertical"></div>
         </div>
 
         <!-- Dropdown menu -->
@@ -26,7 +27,7 @@
         <div v-show="!collapsed" class="tree-node__children">
             <draggable :list="node.children" group="departments" item-key="id" @change="handleDrop">
                 <template #item="{ element: child }">
-                    <TreeNode :key="child.id" :node="child" @updateNode="updateNode" />
+                    <TreeNode :key="child.id" :node="child" @updateNode="updateNode" :isLine="true" />
                 </template>
             </draggable>
         </div>
@@ -43,6 +44,10 @@ const treeData = ref([{ children: dataList }]);
 
 const props = defineProps({
     node: Object,
+    isLine: {
+        type: Boolean,
+        default: false
+    }
 });
 const emit = defineEmits(['update', 'update-level']);
 
@@ -203,7 +208,7 @@ const handleDrop = (event) => {
     width: 10px;
     border: 1px solid rgba(220, 220, 220, 1);
     top: 8px;
-    z-index: 9999;
+    z-index: -99999;
     right: 100%;
 }
 

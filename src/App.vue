@@ -4,9 +4,8 @@
     <div class="wrap">
       <input v-model="searchQuery" placeholder="Tìm kiếm phòng ban" @input="filterDepartments" />
       <draggable v-model="listData1" group="departments" :animation="300" itemKey="id">
-
         <template #item="{ element: department }">
-          <TheNode :node="department" :key="department.id" />
+          <TreeNode :node="department" :key="department.id" />
         </template>
       </draggable>
     </div>
@@ -18,7 +17,7 @@
       <InputModel :show="modalVisible" :title="modalTitle" @confirm="handleModalConfirm" @close="handleModalClose" />
       <draggable v-model="treeData" group="departments" :animation="300" itemKey="id" @change="handleDrop">
         <template #item="{ element: department }">
-          <TreeNode :node="department" :key="department.id" @update="handleUpdateNode" />
+          <TreeNode :node="department" :key="department.id" @update="handleUpdateNode" :isLine="true" />
         </template>
       </draggable>
     </div>
@@ -27,7 +26,6 @@
 </template>
 
 <script setup>
-import TheNode from './components/TheNode.vue';
 import TreeNode from './components/TreeNode.vue';
 import InputModel from './components/InputModel.vue';
 import { onEvent } from './eventBus';
