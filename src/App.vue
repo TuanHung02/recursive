@@ -51,10 +51,10 @@ const openModal = (title, { parentNode = null, currentNode = null }) => {
 
 const filterDepartments = () => {
   if (searchQuery.value.trim() === "") {
-    listData1.value = ListTreeData1; // Nếu không có tìm kiếm, hiển thị tất cả
+    listData1.value = ListTreeData1;
   } else {
     listData1.value = ListTreeData1.filter(department =>
-      department.name.toLowerCase().includes(searchQuery.value.toLowerCase()) // Tìm kiếm không phân biệt chữ hoa hay chữ thường
+      department.name.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
   }
 };
@@ -127,181 +127,102 @@ const handleDrop = (node) => {
 
 // Event handling
 onEvent('addNode', (id) => {
-  // Hàm đệ quy để tìm node theo id và thêm node con mới
-  const addNode = (node, id) => {
-
+  const findAndAddNode = (node) => {
     if (node.id === id) {
       openModal('Thêm mới phòng ban', { parentNode: node });
-
       return true;
     }
-    if (node.children) {
-      for (let child of node.children) {
-        if (addNode(child, id)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-  // Bắt đầu tìm kiếm từ gốc
-  const rootNode = treeData.value[0];
-  if (addNode(rootNode, id)) {
-    console.log('Thêm node mới dưới:', id);
-  } else {
-    console.log('Không tìm thấy node để thêm.');
-  }
-});
+    return node.children?.some(findAndAddNode) || false;
+  };
 
-onEvent('editNode', (id) => {
-  // Hàm đệ quy để tìm node theo id và sửa node
-  const editNode = (node, id) => {
-    if (node.id === id) {
-      // Giả định rằng chúng ta có một giao diện đầu vào để sửa tên node
-      const newName = prompt("Nhập tên mới cho node:", node.name);
-      if (newName) {
-        node.name = newName;
-      }
-      return true;
-    }
-    if (node.children) {
-      for (let child of node.children) {
-        if (editNode(child, id)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  // Bắt đầu tìm kiếm từ gốc
-  const rootNode = treeData.value[0];
-  if (editNode(rootNode, id)) {
-    console.log('Sửa node:', id);
-  } else {
-    console.log('Không tìm thấy node để sửa.');
-  }
+  treeData.value.some(findAndAddNode);
 });
 
 onEvent('deleteNode', (id) => {
-  // Hàm đệ quy để tìm và xóa node theo id
-  const deleteNode = (node, id) => {
+  const deleteNode = (node) => {
     if (!node.children) return false;
+
     const index = node.children.findIndex(child => child.id === id);
     if (index !== -1) {
       node.children.splice(index, 1);
       return true;
     }
-    // Tiếp tục tìm kiếm trong danh sách con
-    for (let child of node.children) {
-      if (deleteNode(child, id)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
-  // Bắt đầu tìm kiếm từ gốc
-  const rootNode = treeData.value[0];
-  if (deleteNode(rootNode, id)) {
-    console.log('Đã xóa node:', id);
-  } else {
-    console.log('Không tìm thấy node để xóa.');
-  }
+    return node.children.some(deleteNode);
+  };
+
+  treeData.value.some(deleteNode);
 });
+
 
 onEvent('increaseLevel', (id) => {
   const increaseLevel = (node, parent) => {
-    if (node.children) {
-      // Find the node and its parent
-      for (let i = 0; i < node.children.length; i++) {
-        const child = node.children[i];
-        if (child.id === id) {
-          // Remove the child from the current parent
-          const [movedNode] = node.children.splice(i, 1);
+    if (!node.children) return false;
 
-          // Assign the same level as the parent
-          movedNode.level = node.level;
+    const index = node.children.findIndex(child => child.id === id);
+    if (index !== -1) {
+      const [movedNode] = node.children.splice(index, 1);
 
-          // Recursively update the level of all descendants (children, grandchildren, etc.)
-          const updateChildLevels = (childNode) => {
-            if (childNode.children) {
-              childNode.children.forEach(grandChild => {
-                grandChild.level = childNode.level + 1;
-                updateChildLevels(grandChild); // Recursive call for deep nested children
-              });
-            }
-          };
-          updateChildLevels(movedNode);
+      // Cập nhật cấp độ của node được di chuyển
+      movedNode.level = node.level;
 
-          // Add the child node as a sibling to the       
-          parent.children.push(movedNode);
-          return true;
-        } else if (increaseLevel(child, node)) {
-          return true;
+      // Hàm đệ quy cập nhật cấp độ cho toàn bộ con cháu của node được di chuyển
+      const updateChildLevels = (childNode) => {
+        if (childNode.children) {
+          childNode.children.forEach(grandChild => {
+            grandChild.level = childNode.level + 1;
+            updateChildLevels(grandChild);
+          });
         }
-      }
-    }
-    return false;
-  }
+      };
+      updateChildLevels(movedNode);
 
-  const rootNode = treeData.value[0];
-  if (increaseLevel(rootNode, rootNode)) {
-    console.log("Node đã được nâng cấp lên cùng cấp với node cha:", id);
-  } else {
-    console.log("Không tìm thấy node để tăng cấp.");
-  }
+      // Thêm node vào danh sách con của parent
+      parent.children.push(movedNode);
+      return true;
+    }
+
+    // Tiếp tục tìm kiếm trong danh sách con
+    return node.children.some(child => increaseLevel(child, node));
+  };
+  treeData.value.some(rootNode => increaseLevel(rootNode, rootNode));
 });
 
+
 onEvent('decreaseLevel', (id) => {
-  // Hàm đệ quy để tìm node theo id và giảm cấp độ
   const decreaseLevel = (node) => {
-    if (node.children) {
-      for (let i = 0; i < node.children.length; i++) {
-        const child = node.children[i];
-        if (child.id === id) {
-          // Tìm nút đồng cấp trước đó
-          const sibling = node.children[i - 1];
-          if (sibling) {
-            // Di chuyển node vào làm con của sibling trước đó
-            const [movedNode] = node.children.splice(i, 1); // Xóa node khỏi cha hiện tại
-            sibling.children.push(movedNode); // Thêm node vào làm con của sibling
-            movedNode.level = sibling.level + 1; // Cập nhật cấp độ của node
+    if (!node.children) return false;
 
-            // Cập nhật cấp độ của tất cả các con của node đã di chuyển
-            const updateChildLevels = (childNode) => {
-              if (childNode.children) {
-                childNode.children.forEach(grandChild => {
-                  grandChild.level = childNode.level + 1;
-                  updateChildLevels(grandChild); // Đệ quy cập nhật cấp độ con
-                });
-              }
-            };
-            updateChildLevels(movedNode);
+    for (let i = 0; i < node.children.length; i++) {
+      const child = node.children[i];
+      if (child.id === id) {
+        const sibling = node.children[i - 1]; // Tìm sibling trước đó
+        if (sibling) {
+          // Di chuyển node làm con của sibling
+          const [movedNode] = node.children.splice(i, 1);
+          sibling.children = sibling.children || [];
+          sibling.children.push(movedNode);
 
-            console.log("Node đã được giảm cấp, trở thành con của node đồng cấp trước:", id);
-            return true;
-          } else {
-            console.log("Không tìm thấy sibling trước để giảm cấp.");
-          }
-        }
-        if (decreaseLevel(child, node)) {
+          // Cập nhật cấp độ cho node được di chuyển và con cháu của nó
+          movedNode.level = sibling.level + 1;
+
+          const updateChildLevels = (childNode) => {
+            childNode.children?.forEach(grandChild => {
+              grandChild.level = childNode.level + 1;
+              updateChildLevels(grandChild);
+            });
+          };
+          updateChildLevels(movedNode);
           return true;
         }
+        return false; // Không có sibling trước đó để giảm cấp
       }
+      if (decreaseLevel(child)) return true;
     }
     return false;
   };
-
-  const rootNode = treeData.value[0];
-  if (decreaseLevel(rootNode, rootNode)) {
-    console.log("Node đã được giảm cấp.");
-  } else {
-    console.log("Không tìm thấy node để giảm cấp.");
-  }
+  treeData.value.some(rootNode => decreaseLevel(rootNode));
 });
-
-
 </script>
 
 <style scoped>
