@@ -15,9 +15,9 @@
       <div class="back-white"></div>
       <div class="back-white-v2"></div>
       <InputModel :show="modalVisible" :title="modalTitle" @confirm="handleModalConfirm" @close="handleModalClose" />
-      <draggable v-model="treeData" group="departments" :animation="300" itemKey="id" @change="handleDrop">
+      <draggable v-model="treeData" group="departments" :animation="300" itemKey="id">
         <template #item="{ element: department }">
-          <TreeNode :node="department" :key="department.id" @update="handleUpdateNode" :isLine="true" />
+          <TreeNode :node="department" :key="department.id" :isLine="true" :maxLevel="10" />
         </template>
       </draggable>
     </div>
@@ -82,48 +82,24 @@ const handleModalClose = () => {
   modalVisible.value = false;
 };
 
-const handleUpdateNode = (updatedNode) => {
-  // Hàm đệ quy để tìm node theo id và cập nhật node
-  const updateNode = (node, updatedNode) => {
-    if (node.id === updatedNode.id) {
-      Object.assign(node, updatedNode);
-      return true;
-    }
-    if (node.children) {
-      for (let child of node.children) {
-        if (updateNode(child, updatedNode)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-  // Bắt đầu tìm kiếm từ gốc
-  const rootNode = treeData.value[0];
-  if (updateNode(rootNode, updatedNode)) {
-    console.log("Node được cập nhật:", updatedNode);
-  } else {
-    console.log("Không tìm thấy node để cập nhật.");
-  }
-}
-const handleDrop = (node) => {
-  const countParents = (nodes, targetNode, level = 0) => {
-    for (const parentNode of nodes) {
-      if (parentNode.children && parentNode.children.includes(targetNode)) {
-        return level + 1;
-      }
-      if (parentNode.children) {
-        const parentLevel = countParents(parentNode.children, targetNode, level + 1);
-        if (parentLevel) return parentLevel;
-      }
-    }
-    return level;
-  };
+// const handleDrop = (node) => {
+//   const countParents = (nodes, targetNode, level = 0) => {
+//     for (const parentNode of nodes) {
+//       if (parentNode.children && parentNode.children.includes(targetNode)) {
+//         return level + 1;
+//       }
+//       if (parentNode.children) {
+//         const parentLevel = countParents(parentNode.children, targetNode, level + 1);
+//         if (parentLevel) return parentLevel;
+//       }
+//     }
+//     return level;
+//   };
 
-  const level = countParents(treeData.value, node);
-  node.level = level;
-  console.log('Node level updated to:', node.level);
-};
+//   const level = countParents(treeData.value, node);
+//   node.level = level;
+//   console.log('Node level updated to:', node.level);
+// };
 
 // Event handling
 onEvent('addNode', (id) => {
@@ -207,10 +183,12 @@ onEvent('decreaseLevel', (id) => {
           movedNode.level = sibling.level + 1;
 
           const updateChildLevels = (childNode) => {
-            childNode.children?.forEach(grandChild => {
-              grandChild.level = childNode.level + 1;
-              updateChildLevels(grandChild);
-            });
+            if (childNode.children) {
+              childNode.children.forEach(grandChild => {
+                grandChild.level = childNode.level + 1;
+                updateChildLevels(grandChild);
+              });
+            }
           };
           updateChildLevels(movedNode);
           return true;
@@ -234,7 +212,6 @@ h1 {
   border: 1px solid rgba(220, 220, 220, 1);
   border-radius: 10px;
   padding: 18px 28px 18px 0;
-  max-width: 500px;
   min-width: 430px;
   height: fit-content;
 }
@@ -243,7 +220,6 @@ h1 {
   border: 1px solid rgba(220, 220, 220, 1);
   border-radius: 10px;
   padding: 0 28px 18px 0;
-  max-width: 500px;
   min-width: 430px;
 }
 

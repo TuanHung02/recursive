@@ -27,3 +27,27 @@
     //     console.log('Không tìm thấy node để sửa.');
     //   }
     // }); */
+    /* const handleUpdateNode = (updatedNode) => {
+        // Hàm đệ quy để tìm node theo id và cập nhật node
+        const updateNode = (node, updatedNode) => {
+          if (node.id === updatedNode.id) {
+            Object.assign(node, updatedNode);
+            return true;
+          }
+          if (node.children) {
+            for (let child of node.children) {
+              if (updateNode(child, updatedNode)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+        // Bắt đầu tìm kiếm từ gốc
+        const rootNode = treeData.value[0];
+        if (updateNode(rootNode, updatedNode)) {
+          console.log("Node được cập nhật:", updatedNode);
+        } else {
+          console.log("Không tìm thấy node để cập nhật.");
+        }
+      } */

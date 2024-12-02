@@ -18,21 +18,22 @@
 
         <!-- Dropdown menu -->
         <div v-if="showMenu" :style="dropdownStyle" class="dropdown-menu">
-            <button @click="addNode">Thêm phòng ban</button>
+            <button @click="addNode" :disabled="node.level >= maxLevel">Thêm phòng ban</button>
             <button @click="deleteNode">Xóa phòng ban</button>
             <button :disabled="node.level == 1" @click="increaseLevel">Nâng level</button>
-            <button @click="decreaseLevel">Giảm level</button>
+            <button :disabled="node.level >= maxLevel" @click="decreaseLevel">Giảm level</button>
         </div>
 
         <div v-show="!collapsed" class="tree-node__children">
             <draggable :list="node.children" group="departments" item-key="id" @change="handleDrop">
                 <template #item="{ element: child }">
-                    <TreeNode :key="child.id" :node="child" @updateNode="updateNode" :isLine="true" />
+                    <TreeNode :key="child.id" :node="child" :isLine="true" :maxLevel="maxLevel" />
                 </template>
             </draggable>
         </div>
     </div>
 </template>
+
 
 
 <script setup>
@@ -47,9 +48,13 @@ const props = defineProps({
     isLine: {
         type: Boolean,
         default: false
-    }
+    },
+    maxLevel: {
+        type: Number,
+        default: 10, // Giới hạn mặc định nếu không truyền vào
+    },
 });
-const emit = defineEmits(['update', 'update-level']);
+// const emit = defineEmits(['update', 'update-level']);
 
 const collapsed = ref(false);
 const showMenu = ref(false);
@@ -86,9 +91,9 @@ const deleteNode = () => {
     closeDropdown();
 }
 
-const updateNode = (updatedNode) => {
-    emit('update', updatedNode);
-}
+// const updateNode = (updatedNode) => {
+//     emit('update', updatedNode);
+// }
 
 const increaseLevel = () => {
     emitEvent('increaseLevel', props.node.id);
@@ -102,6 +107,7 @@ const decreaseLevel = () => {
 
 const handleDrop = (event) => {
     const { added } = event;
+
     if (added && added.element) {
         const droppedNode = added.element;
 
@@ -109,23 +115,25 @@ const handleDrop = (event) => {
         const countAllParents = (nodes, targetNode, level = 0) => {
             for (const node of nodes) {
                 if (node.children && node.children.includes(targetNode)) {
-                    // Check for deeper parents, and add the count to the current level
-                    return level + 1
+                    return level + 1; // Found direct parent
                 }
                 if (node.children) {
                     const parentLevel = countAllParents(node.children, targetNode, level + 1);
-                    if (parentLevel) return parentLevel;
+                    if (parentLevel > 0) return parentLevel; // Return as soon as we find the target
                 }
             }
-            return 0;
+            return 0; // No parent found
         };
 
-        // Calculate the level of the dropped node considering all ancestors
-        const level = countAllParents(treeData.value, droppedNode);
-        droppedNode.level = level;
-        console.log('Dropped node level updated to:', droppedNode.level);
+        const newLevel = countAllParents(treeData.value, droppedNode);
+        if (newLevel <= props.maxLevel) {
+            droppedNode.level = newLevel;
+        } else {
+            alert('Không thể thả node vào vì vượt quá giới hạn mức tối đa.');
+        }
     }
 };
+
 
 </script>
 
