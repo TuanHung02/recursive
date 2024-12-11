@@ -172,12 +172,12 @@ onEvent('decreaseLevel', (id) => {
     for (let i = 0; i < node.children.length; i++) {
       const child = node.children[i];
       if (child.id === id) {
-        const sibling = node.children[i - 1]; // Tìm sibling trước đó
+        const sibling = node.children[i - 1];
         if (sibling) {
           // Di chuyển node làm con của sibling
           const [movedNode] = node.children.splice(i, 1);
           sibling.children = sibling.children || [];
-          sibling.children.push(movedNode);
+          sibling.children.push();
 
           // Cập nhật cấp độ cho node được di chuyển và con cháu của nó
           movedNode.level = sibling.level + 1;

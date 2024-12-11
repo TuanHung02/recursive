@@ -111,7 +111,6 @@ const handleDrop = (event) => {
     if (added && added.element) {
         const droppedNode = added.element;
 
-        // Recursive function to count all parent levels
         const countAllParents = (nodes, targetNode, level = 0) => {
             for (const node of nodes) {
                 if (node.children && node.children.includes(targetNode)) {
